@@ -66,12 +66,12 @@ class FeedbackLoop:
                 # Filter for columns that match training data
                 common_cols = [c for c in df_train.columns if c in df_feedback.columns]
                 
-                if 'isFraud' in common_cols:
-                    # Append feedback to training data
+                if 'isFraud' in common_cols and len(common_cols) == len(df_train.columns):
+                    # Append feedback to training data only if ALL training features are present
                     df_combined = pd.concat([df_train, df_feedback[common_cols]], ignore_index=True)
                     print(f"Combined data: {len(df_train)} original + {len(df_feedback)} feedback = {len(df_combined)} total.")
                 else:
-                    print("Warning: Feedback data missing target or columns. Using original data only.")
+                    print(f"Warning: Feedback data missing target or required feature columns (found {len(common_cols)}/{len(df_train.columns)}). Using original data only.")
                     df_combined = df_train
             except Exception as e:
                 print(f"Error reading feedback file: {e}")
