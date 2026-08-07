@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Transaction Fraud Detection System</title>
+    <!-- Google Fonts & Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: rgba(22, 30, 49, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #7f00ff;
+            --danger-red: #ff4b5c;
+            --warning-orange: #ff9f43;
+            --success-green: #10ac84;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(79, 172, 254, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(127, 0, 255, 0.08) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2.5rem;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .brand h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(16, 172, 132, 0.15);
+            border: 1px solid rgba(16, 172, 132, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--success-green);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        nav {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.4rem;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .nav-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(127, 0, 255, 0.2));
+            border-color: rgba(79, 172, 254, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 2.5rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.2rem 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(79, 172, 254, 0.3);
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Live Streaming Layout */
+        .stream-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Stream Feed Table */
+        .feed-container {
+            max-height: 480px;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .feed-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .feed-table th {
+            text-align: left;
+            padding: 0.8rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-muted);
+            font-weight: 500;
+
+        }
+
+        .feed-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--card-border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .feed-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-block { background: rgba(255, 75, 92, 0.2); color: var(--danger-red); border: 1px solid rgba(255, 75, 92, 0.3); }
+        .badge-review { background: rgba(255, 159, 67, 0.2); color: var(--warning-orange); border: 1px solid rgba(255, 159, 67, 0.3); }
+        .badge-legit { background: rgba(16, 172, 132, 0.2); color: var(--success-green); border: 1px solid rgba(16, 172, 132, 0.3); }
+
+        /* Form styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            padding: 0.7rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-submit {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-submit:hover { opacity: 0.9; }
+
+        /* Risk Gauge & SHAP factors */
+        .result-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .gauge-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+
+        .factor-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* Drag & Drop Upload Zone */
+        .dropzone {
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.03);
+        }
+
+        /* Feedback Controls */
+        .btn-fb {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: none;
+            margin-right: 0.3rem;
+        }
+        .btn-confirm { background: var(--danger-red); color: #fff; }
+        .btn-dismiss { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-logo">FD</div>
+            <div>
+                <h1>FraudGuard AI</h1>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="status-badge">
+                <div class="pulse-dot"></div>
+                <span id="sys-status-text">Pipeline Active</span>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <button class="nav-btn active" onclick="switchTab('stream-tab')">Live Stream Dashboard</button>
+        <button class="nav-btn" onclick="switchTab('manual-tab')">Manual Transaction Check</button>
+        <button class="nav-btn" onclick="switchTab('batch-tab')">CSV Batch Upload</button>
+        <button class="nav-btn" onclick="switchTab('analytics-tab')">Model & Graph Analytics</button>
+    </nav>
+
+    <main>
+        <!-- 1. LIVE STREAM DASHBOARD TAB -->
+        <div id="stream-tab" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Processed</div>
+                    <div class="kpi-value" id="kpi-processed">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Blocked Transactions</div>
+                    <div class="kpi-value" id="kpi-blocked" style="color: var(--danger-red);">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Analyst Review</div>
+                    <div class="kpi-value" id="kpi-review" style="color: var(--warning-orange);">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Avg Latency</div>
+                    <div class="kpi-value" id="kpi-latency">0 ms</div>
+                </div>
+            </div>
+
+            <div class="stream-layout">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Real-Time Risk Probability Stream (Chart.js)</div>
+                    </div>
+                    <canvas id="streamChart" height="140"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Live Alert Feed & Analyst Feedback</div>
+                    </div>
+                    <div class="feed-container">
+                        <table class="feed-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Amt</th>
+                                    <th>Score</th>
+                                    <th>Decision</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feed-tbody">
+                                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Waiting for streaming events...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. MANUAL CHECK TAB -->
+        <div id="manual-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Manual Single-Transaction Analysis</div>
+                </div>
+                <form id="manualForm" onsubmit="handleManualSubmit(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Transaction Amount ($)</label>
+                            <input type="number" step="0.01" id="m_amount" class="form-input" value="3500.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sender Card ID (card1)</label>
+                            <input type="text" id="m_card1" class="form-input" value="1234" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Receiver Card ID (card2)</label>
+                            <input type="text" id="m_card2" class="form-input" value="5678" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Code</label>
+                            <select id="m_product" class="form-input">
+                                <option value="W">W - Web Purchase</option>
+                                <option value="C">C - Credit Card</option>
+                                <option value="R">R - Recurring</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Evaluate Transaction</button>
+                </form>
+
+                <div id="manual-result" class="result-panel" style="display: none;">
+                    <div class="gauge-box">
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Overall Risk Score</div>
+                        <div id="res-score" style="font-size: 3rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">0.00</div>
+                        <div id="res-badge" class="badge badge-legit" style="margin-top: 0.5rem; font-size: 1rem; padding: 0.4rem 1rem;">LEGIT</div>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1.5rem;">
+                        <div style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Top-3 SHAP Contributing Factors</div>
+                        <div id="shap-factors"></div>
+                        <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);" id="res-components"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CSV BATCH UPLOAD TAB -->
+        <div id="batch-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">CSV Batch Prediction (Up to 1000 rows)</div>
+                </div>
+                <div class="dropzone" id="dropzone" onclick="document.getElementById('csvFile').click()">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">Drag & drop your preprocessed CSV file here</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">or click to select file</div>
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleCsvUpload(this.files[0])">
+                </div>
+
+                <div id="batch-results" style="margin-top: 2rem; display: none;">
+                    <div class="kpi-grid">
+                        <div class="kpi-card"><div class="kpi-title">Rows Analyzed</div><div class="kpi-value" id="b-total">0</div></div>
+                        <div class="kpi-card"><div class="kpi-title">Blocked</div><div class="kpi-value" id="b-blocked" style="color: var(--danger-red);">0</div></div>
+                        <div class="kpi-card"><div class="kpi-title">Review</div><div class="kpi-value" id="b-review" style="color: var(--warning-orange);">0</div></div>
+                        <div class="kpi-card"><div class="kpi-title">Avg Risk Score</div><div class="kpi-value" id="b-avg">0.00</div></div>
+                    </div>
+
+                    <div class="feed-container">
+                        <table class="feed-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Amount</th>
+                                    <th>Risk Score</th>
+                                    <th>Decision</th>
+                                    <th>Top Factor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batch-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. MODEL & GRAPH ANALYTICS TAB -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="stream-layout">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Classifier Performance Comparison (Table VI Metrics)</div>
+                    </div>
+                    <canvas id="metricsChart" height="150"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">NetworkX Graph Risk Metrics</div>
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.8;">
+                        <div><strong>Graph Nodes:</strong> <span id="g-nodes">0</span></div>
+                        <div><strong>Graph Edges:</strong> <span id="g-edges">0</span></div>
+                        <div><strong>Detected Hubs (>10 deg):</strong> <span id="g-hubs">None</span></div>
+                        <div><strong>Detected Cycles:</strong> <span id="g-cycles">0</span></div>
+                    </div>
+                    <button class="btn-submit" style="margin-top: 1.5rem; width: 100%;" onclick="triggerRetrain()">Trigger Hot-Swap Model Retrain</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Initialize Chart.js Real-time Stream
+        const ctxStream = document.getElementById('streamChart').getContext('2d');
+        const streamChart = new Chart(ctxStream, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Risk Score (R_final)',
+                    data: [],
+                    borderColor: '#00f2fe',
+                    backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Initialize Metrics Chart (Fig 2 / Table VI)
+        const ctxMetrics = document.getElementById('metricsChart').getContext('2d');
+        new Chart(ctxMetrics, {
+            type: 'bar',
+            data: {
+                labels: ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC'],
+                datasets: [
+                    { label: 'Random Forest (Thresh 0.30)', data: [97.20, 77.91, 35.38, 48.66, 90.72], backgroundColor: '#4facfe' },
+                    { label: 'Isolation Forest', data: [92.24, 12.31, 17.49, 14.45, 76.87], backgroundColor: '#7f00ff' },
+                    { label: 'Combined System (Either OR)', data: [94.50, 26.64, 59.60, 36.82, 85.00], backgroundColor: '#10ac84' }
+                ]
+            },
+            options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
+        });
+
+        // SSE Connection Setup
+        const evtSource = new EventSource('/api/stream/events');
+        let processedCount = 0, blockedCount = 0, reviewCount = 0;
+
+        evtSource.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            processedCount++;
+            if (data.decision === 'BLOCK') blockedCount++;
+            if (data.decision === 'REVIEW') reviewCount++;
+
+            document.getElementById('kpi-processed').innerText = processedCount;
+            document.getElementById('kpi-blocked').innerText = blockedCount;
+            document.getElementById('kpi-review').innerText = reviewCount;
+            document.getElementById('kpi-latency').innerText = data.latency_ms + ' ms';
+
+            // Update Chart
+            const timeLabel = new Date(data.timestamp).toLocaleTimeString();
+            streamChart.data.labels.push(timeLabel);
+            streamChart.data.datasets[0].data.push(data.final_risk_score);
+            if (streamChart.data.labels.length > 20) {
+                streamChart.data.labels.shift();
+                streamChart.data.datasets[0].data.shift();
+            }
+            streamChart.update();
+
+            // Update Feed Table
+            const tbody = document.getElementById('feed-tbody');
+            if (tbody.children[0] && tbody.children[0].children.length === 1) tbody.innerHTML = '';
+
+            let badgeClass = 'badge-legit';
+            if (data.decision === 'BLOCK') badgeClass = 'badge-block';
+            if (data.decision === 'REVIEW') badgeClass = 'badge-review';
+
+            const row = `<tr>
+                <td>${data.transaction_id}</td>
+                <td>$${data.amount}</td>
+                <td>${data.final_risk_score}</td>
+                <td><span class="badge ${badgeClass}">${data.decision}</span></td>
+                <td>
+                    <button class="btn-fb btn-confirm" onclick="sendFeedback('${data.transaction_id}', true)">Confirm</button>
+                    <button class="btn-fb btn-dismiss" onclick="sendFeedback('${data.transaction_id}', false)">Dismiss</button>
+                </td>
+            </tr>`;
+            tbody.insertAdjacentHTML('afterbegin', row);
+        };
+
+        // Manual Evaluation Submit
+        async function handleManualSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                TransactionAmt: parseFloat(document.getElementById('m_amount').value),
+                card1: document.getElementById('m_card1').value,
+                card2: document.getElementById('m_card2').value,
+                ProductCD: document.getElementById('m_product').value
+            };
+
+            const res = await fetch('/api/predict/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            document.getElementById('manual-result').style.display = 'grid';
+            document.getElementById('res-score').innerText = data.final_risk_score;
+
+            const badge = document.getElementById('res-badge');
+            badge.innerText = data.decision;
+            badge.className = `badge badge-${data.decision.toLowerCase()}`;
+
+            let factorsHtml = '';
+            factorsHtml += `<div class="factor-item"><span>${data.top_factor_1_name}</span><span>${data.top_factor_1_value}</span></div>`;
+            factorsHtml += `<div class="factor-item"><span>${data.top_factor_2_name}</span><span>${data.top_factor_2_value}</span></div>`;
+            factorsHtml += `<div class="factor-item"><span>${data.top_factor_3_name}</span><span>${data.top_factor_3_value}</span></div>`;
+            document.getElementById('shap-factors').innerHTML = factorsHtml;
+
+            document.getElementById('res-components').innerText = `Supervised RF: ${data.supervised_score} | Anomaly IF: ${data.anomaly_score} | Graph Risk: ${data.graph_risk_score}`;
+        }
+
+        // CSV Upload Handler
+        async function handleCsvUpload(file) {
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/predict/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            document.getElementById('batch-results').style.display = 'block';
+            document.getElementById('b-total').innerText = data.summary.total_rows;
+            document.getElementById('b-blocked').innerText = data.summary.blocked_count;
+            document.getElementById('b-review').innerText = data.summary.review_count;
+            document.getElementById('b-avg').innerText = data.summary.avg_risk_score;
+
+            let rows = '';
+            data.results.forEach(r => {
+                let bClass = 'badge-legit';
+                if (r.decision === 'BLOCK') bClass = 'badge-block';
+                if (r.decision === 'REVIEW') bClass = 'badge-review';
+                rows += `<tr>
+                    <td>${r.transaction_id}</td>
+                    <td>$${r.amount}</td>
+                    <td>${r.final_risk_score}</td>
+                    <td><span class="badge ${bClass}">${r.decision}</span></td>
+                    <td>${r.top_factor_1_name}: ${r.top_factor_1_value}</td>
+                </tr>`;
+            });
+            document.getElementById('batch-tbody').innerHTML = rows;
+        }
+
+        // Feedback
+        async function sendFeedback(txId, isFraud) {
+            await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transaction_id: txId, is_fraud: isFraud })
+            });
+            alert(`Feedback logged for ${txId}`);
+        }
+
+        // Fetch Analytics
+        async function loadAnalytics() {
+            const res = await fetch('/api/analytics');
+            const data = await res.json();
+            document.getElementById('g-nodes').innerText = data.graph_metrics.nodes_count;
+            document.getElementById('g-edges').innerText = data.graph_metrics.edges_count;
+            document.getElementById('g-hubs').innerText = Object.keys(data.graph_metrics.hubs).length || 'None';
+            document.getElementById('g-cycles').innerText = data.graph_metrics.cycles_count;
+        }
+        loadAnalytics();
+
+        async function triggerRetrain() {
+            const res = await fetch('/api/model/retrain', { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+        }
+    </script>
+</body>
+</html>
