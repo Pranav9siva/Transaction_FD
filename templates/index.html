@@ -9,17 +9,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #0b0f19;
-            --card-bg: rgba(22, 30, 49, 0.7);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent-cyan: #00f2fe;
-            --accent-blue: #4facfe;
-            --accent-purple: #7f00ff;
-            --danger-red: #ff4b5c;
-            --warning-orange: #ff9f43;
-            --success-green: #10ac84;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
+            --c-morning-sky: #87ceeb;
+            --c-honey: #ffc30b;
+            --c-cerulean: #007ba7;
+            --c-mist: #bcc6cc;
+
+            /* Dark Theme Default */
+            --bg-main: #00151f;
+            --card-bg: rgba(0, 40, 60, 0.7);
+            --card-border: rgba(188, 198, 204, 0.15);
+            --text-main: var(--c-morning-sky);
+            --text-muted: var(--c-mist);
+            
+            --accent-primary: var(--c-cerulean);
+            --accent-secondary: var(--c-morning-sky);
+            --accent-warning: var(--c-honey);
+            
+            --success-color: var(--c-morning-sky);
+            --warning-color: var(--c-honey);
+            --danger-color: var(--c-honey);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #eef2f5;
+            --card-bg: rgba(188, 198, 204, 0.85);
+            --card-border: rgba(188, 198, 204, 0.6);
+            --text-main: var(--c-cerulean);
+            --text-muted: #5a7684;
+            --success-color: var(--c-cerulean);
+            --warning-color: var(--c-honey);
+            --danger-color: var(--c-honey);
         }
 
         * {
@@ -30,10 +49,11 @@
         }
 
         body {
-            background-color: var(--bg-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: var(--bg-main);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(79, 172, 254, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(127, 0, 255, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(0, 123, 167, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(135, 206, 235, 0.08) 0%, transparent 40%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -62,13 +82,13 @@
         .brand-logo {
             width: 38px;
             height: 38px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
         }
 
@@ -76,7 +96,7 @@
             font-size: 1.3rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-            background: linear-gradient(90deg, #fff, var(--text-muted));
+            background: linear-gradient(90deg, var(--text-main), var(--text-muted));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -86,19 +106,19 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.4rem 1rem;
-            background: rgba(16, 172, 132, 0.15);
-            border: 1px solid rgba(16, 172, 132, 0.3);
+            background: rgba(135, 206, 235, 0.15);
+            border: 1px solid rgba(135, 206, 235, 0.3);
             border-radius: 20px;
             font-size: 0.85rem;
-            color: var(--success-green);
+            color: var(--success-color);
         }
 
         .pulse-dot {
             width: 8px;
             height: 8px;
-            background-color: var(--success-green);
+            background-color: var(--success-color);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--success-green);
+            box-shadow: 0 0 8px var(--success-color);
             animation: pulse 1.5s infinite;
         }
 
@@ -129,13 +149,13 @@
 
         .nav-btn:hover {
             color: var(--text-main);
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(188, 198, 204, 0.04);
         }
 
         .nav-btn.active {
-            color: #fff;
-            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(127, 0, 255, 0.2));
-            border-color: rgba(79, 172, 254, 0.4);
+            color: var(--text-main);
+            background: linear-gradient(135deg, rgba(0, 123, 167, 0.2), rgba(135, 206, 235, 0.2));
+            border-color: rgba(0, 123, 167, 0.4);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
@@ -177,7 +197,7 @@
 
         .kpi-card:hover {
             transform: translateY(-2px);
-            border-color: rgba(79, 172, 254, 0.3);
+            border-color: rgba(0, 123, 167, 0.3);
         }
 
         .kpi-title {
@@ -191,7 +211,7 @@
         .kpi-value {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -252,7 +272,7 @@
         }
 
         .feed-table tr:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(188, 198, 204, 0.02);
         }
 
         .badge {
@@ -263,9 +283,9 @@
             display: inline-block;
         }
 
-        .badge-block { background: rgba(255, 75, 92, 0.2); color: var(--danger-red); border: 1px solid rgba(255, 75, 92, 0.3); }
-        .badge-review { background: rgba(255, 159, 67, 0.2); color: var(--warning-orange); border: 1px solid rgba(255, 159, 67, 0.3); }
-        .badge-legit { background: rgba(16, 172, 132, 0.2); color: var(--success-green); border: 1px solid rgba(16, 172, 132, 0.3); }
+        .badge-block { background: rgba(255, 195, 11, 0.2); color: var(--danger-color); border: 1px solid rgba(255, 195, 11, 0.3); }
+        .badge-review { background: rgba(255, 195, 11, 0.2); color: var(--warning-color); border: 1px solid rgba(255, 195, 11, 0.3); }
+        .badge-legit { background: rgba(135, 206, 235, 0.2); color: var(--success-color); border: 1px solid rgba(135, 206, 235, 0.3); }
 
         /* Form styling */
         .form-grid {
@@ -291,26 +311,26 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--card-border);
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-main);
             font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s ease;
         }
 
         .form-input:focus {
-            border-color: var(--accent-blue);
+            border-color: var(--accent-primary);
         }
 
         .btn-submit {
             padding: 0.8rem 2rem;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary));
             border: none;
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-main);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 123, 167, 0.3);
             transition: opacity 0.2s ease;
         }
 
@@ -339,7 +359,7 @@
             justify-content: space-between;
             padding: 0.6rem 0.8rem;
             margin-bottom: 0.5rem;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(188, 198, 204, 0.03);
             border-radius: 6px;
             font-size: 0.85rem;
         }
@@ -355,7 +375,7 @@
         }
 
         .dropzone:hover {
-            border-color: var(--accent-cyan);
+            border-color: var(--accent-secondary);
             background: rgba(0, 242, 254, 0.03);
         }
 
@@ -368,7 +388,7 @@
             border: none;
             margin-right: 0.3rem;
         }
-        .btn-confirm { background: var(--danger-red); color: #fff; }
+        .btn-confirm { background: var(--danger-color); color: var(--text-main); }
         .btn-dismiss { background: rgba(255,255,255,0.1); color: var(--text-muted); }
 
     </style>
@@ -383,6 +403,7 @@
             </div>
         </div>
         <div style="display: flex; gap: 1rem; align-items: center;">
+            <button class="nav-btn" onclick="toggleTheme()" style="margin-right: 1rem; border: 1px solid var(--card-border);">Toggle Theme</button>
             <div class="status-badge">
                 <div class="pulse-dot"></div>
                 <span id="sys-status-text">Pipeline Active</span>
@@ -407,11 +428,11 @@
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">Blocked Transactions</div>
-                    <div class="kpi-value" id="kpi-blocked" style="color: var(--danger-red);">0</div>
+                    <div class="kpi-value" id="kpi-blocked" style="color: var(--danger-color);">0</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">Analyst Review</div>
-                    <div class="kpi-value" id="kpi-review" style="color: var(--warning-orange);">0</div>
+                    <div class="kpi-value" id="kpi-review" style="color: var(--warning-color);">0</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">Avg Latency</div>
@@ -514,8 +535,8 @@
                 <div id="batch-results" style="margin-top: 2rem; display: none;">
                     <div class="kpi-grid">
                         <div class="kpi-card"><div class="kpi-title">Rows Analyzed</div><div class="kpi-value" id="b-total">0</div></div>
-                        <div class="kpi-card"><div class="kpi-title">Blocked</div><div class="kpi-value" id="b-blocked" style="color: var(--danger-red);">0</div></div>
-                        <div class="kpi-card"><div class="kpi-title">Review</div><div class="kpi-value" id="b-review" style="color: var(--warning-orange);">0</div></div>
+                        <div class="kpi-card"><div class="kpi-title">Blocked</div><div class="kpi-value" id="b-blocked" style="color: var(--danger-color);">0</div></div>
+                        <div class="kpi-card"><div class="kpi-title">Review</div><div class="kpi-value" id="b-review" style="color: var(--warning-color);">0</div></div>
                         <div class="kpi-card"><div class="kpi-title">Avg Risk Score</div><div class="kpi-value" id="b-avg">0.00</div></div>
                     </div>
 
@@ -581,8 +602,8 @@
                 datasets: [{
                     label: 'Risk Score (R_final)',
                     data: [],
-                    borderColor: '#00f2fe',
-                    backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                    borderColor: '#87ceeb',
+                    backgroundColor: 'rgba(135, 206, 235, 0.1)',
                     fill: true,
                     tension: 0.3
                 }]
@@ -603,9 +624,9 @@
             data: {
                 labels: ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC'],
                 datasets: [
-                    { label: 'Random Forest (Thresh 0.30)', data: [97.20, 77.91, 35.38, 48.66, 90.72], backgroundColor: '#4facfe' },
-                    { label: 'Isolation Forest', data: [92.24, 12.31, 17.49, 14.45, 76.87], backgroundColor: '#7f00ff' },
-                    { label: 'Combined System (Either OR)', data: [94.50, 26.64, 59.60, 36.82, 85.00], backgroundColor: '#10ac84' }
+                    { label: 'Random Forest (Thresh 0.30)', data: [97.20, 77.91, 35.38, 48.66, 90.72], backgroundColor: '#007ba7' },
+                    { label: 'Isolation Forest', data: [92.24, 12.31, 17.49, 14.45, 76.87], backgroundColor: '#bcc6cc' },
+                    { label: 'Combined System (Either OR)', data: [94.50, 26.64, 59.60, 36.82, 85.00], backgroundColor: '#ffc30b' }
                 ]
             },
             options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
@@ -751,6 +772,14 @@
             const res = await fetch('/api/model/retrain', { method: 'POST' });
             const data = await res.json();
             alert(data.message);
+        }
+    function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
         }
     </script>
 </body>
