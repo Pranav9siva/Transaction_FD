@@ -1,10 +1,17 @@
+import os
+import tempfile
+
+# Force single-threaded execution for joblib/loky in serverless environments (e.g. Vercel)
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import pandas as pd
 import numpy as np
 import joblib
 import shap
 import warnings
 import json
-import os
 import time
 
 warnings.filterwarnings('ignore')

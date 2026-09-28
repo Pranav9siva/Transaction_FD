@@ -1,6 +1,13 @@
+import os
+import tempfile
+
+# Force single-threaded execution for joblib/loky in serverless environments (e.g. Vercel)
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import pandas as pd
 import joblib
-import os
 import shutil
 from datetime import datetime
 from model_training import train_model
@@ -11,9 +18,12 @@ class FeedbackLoop:
         self.training_data = training_data
         self.model_path = model_path
         
-        # Initialize feedback file if not exists
+        # Initialize feedback file if not exists (safe for read-only environments)
         if not os.path.exists(self.feedback_file):
-            pd.DataFrame(columns=['TransactionID', 'isFraud']).to_csv(self.feedback_file, index=False)
+            try:
+                pd.DataFrame(columns=['TransactionID', 'isFraud']).to_csv(self.feedback_file, index=False)
+            except OSError:
+                pass
 
     def log_feedback(self, transaction_id, is_fraud, features=None):
         """
@@ -32,14 +42,15 @@ class FeedbackLoop:
         if features:
             record.update(features)
             
-        # Append to feedback file
-        df = pd.DataFrame([record])
-        
-        # If file exists, append without header
-        if os.path.exists(self.feedback_file) and os.path.getsize(self.feedback_file) > 0:
-            df.to_csv(self.feedback_file, mode='a', header=False, index=False)
-        else:
-            df.to_csv(self.feedback_file, mode='w', header=True, index=False)
+        # Append to feedback file safely
+        try:
+            df = pd.DataFrame([record])
+            if os.path.exists(self.feedback_file) and os.path.getsize(self.feedback_file) > 0:
+                df.to_csv(self.feedback_file, mode='a', header=False, index=False)
+            else:
+                df.to_csv(self.feedback_file, mode='w', header=True, index=False)
+        except OSError:
+            pass
             
         print(f"Feedback logged for Transaction {transaction_id}: {'Fraud' if is_fraud else 'Legit'}")
 

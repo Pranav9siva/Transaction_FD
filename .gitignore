@@ -9,9 +9,6 @@ fraud_train_preprocessed.csv
 fraud_test_preprocessed.csv
 temp_training_data.csv
 
-# Large model binaries
-fraud_model.pkl
-anomaly_model.pkl
 
 # Log files
 *.log

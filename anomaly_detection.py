@@ -1,7 +1,14 @@
+import os
+import tempfile
+
+# Force single-threaded execution for joblib/loky in serverless environments (e.g. Vercel)
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import pandas as pd
 import numpy as np
 import joblib
-import os
 from sklearn.ensemble import IsolationForest
 
 class AnomalyDetector:
@@ -19,7 +26,7 @@ class AnomalyDetector:
         self.model = IsolationForest(
             contamination=self.contamination,
             random_state=self.random_state,
-            n_jobs=-1,
+            n_jobs=1,
             verbose=0
         )
         
@@ -54,10 +61,9 @@ class AnomalyDetector:
                 actual_n = X.shape[1] if hasattr(X, "shape") and len(X.shape) > 1 else len(X)
                 if actual_n != expected_n:
                     if isinstance(X, pd.DataFrame):
-                        X = X.copy()
                         if actual_n < expected_n:
-                            for i in range(actual_n, expected_n):
-                                X[f'pad_col_{i}'] = 0.0
+                            pad_df = pd.DataFrame(0.0, index=X.index, columns=[f'pad_col_{i}' for i in range(actual_n, expected_n)])
+                            X = pd.concat([X, pad_df], axis=1)
                         else:
                             X = X.iloc[:, :expected_n]
                     elif isinstance(X, np.ndarray):

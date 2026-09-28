@@ -1,4 +1,11 @@
 import os
+import tempfile
+
+# Force single-threaded execution for joblib/loky in serverless environments (e.g. Vercel)
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import json
 import time
 import threading
@@ -44,9 +51,12 @@ class FraudStreamingPipeline:
         self.decision_engine = FraudDecisionEngine()
         self.anomaly_detector = AnomalyDetector(contamination=0.03, random_state=42)
         
-        # Fit anomaly detector on initial dummy sample if needed
-        dummy_sample = pd.DataFrame(np.random.randn(100, 10))
-        self.anomaly_detector.train(dummy_sample)
+        # Load pre-trained anomaly model if exists, or fit on dummy sample
+        if os.path.exists("anomaly_model.pkl"):
+            self.anomaly_detector.load_model("anomaly_model.pkl")
+        else:
+            dummy_sample = pd.DataFrame(np.random.randn(100, 10))
+            self.anomaly_detector.train(dummy_sample)
         
         self.alert_system = AlertSystem()
         self.graph_detector = FraudGraphDetector(sender_col='card1', receiver_col='card2')

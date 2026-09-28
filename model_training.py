@@ -1,7 +1,14 @@
+import os
+import tempfile
+
+# Force single-threaded execution for joblib and loky to prevent shared-memory locks in serverless/container environments
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import pandas as pd
 import numpy as np
 import joblib
-import os
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, precision_score, recall_score, f1_score, confusion_matrix
@@ -14,15 +21,17 @@ except ImportError:
     HAS_SMOTE = False
     print("Warning: imblearn not found. SMOTE will be skipped.")
 
-def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, random_state=42):
+def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, random_state=42, sample_size=100000):
     """
     Trains a fraud detection model using Random Forest and SMOTE for imbalance handling.
+    Produces an optimized, compressed model suitable for git and serverless deployments.
     
     Args:
         data_path (str): Path to the preprocessed CSV dataset.
         model_output_path (str): Path to save the trained model.
         test_size (float): Proportion of dataset to include in the test split.
         random_state (int): Random seed for reproducibility.
+        sample_size (int): Max sample size for fast training and compact model size.
         
     Returns:
         dict: Dictionary containing evaluation metrics.
@@ -32,8 +41,11 @@ def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, r
     if not os.path.exists(data_path):
         raise FileNotFoundError(f"Data file not found: {data_path}")
         
-    # Load dataset
-    df = pd.read_csv(data_path)
+    # Load dataset (sample if large for memory and model size efficiency)
+    if sample_size:
+        df = pd.read_csv(data_path, nrows=sample_size)
+    else:
+        df = pd.read_csv(data_path)
     
     # Identify target and features
     target_col = 'isFraud'
@@ -62,12 +74,13 @@ def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, r
         print("Skipping SMOTE (library not available). Using original training data.")
         X_train_resampled, y_train_resampled = X_train, y_train
 
-    # Train Random Forest
+    # Train Random Forest (single-threaded for serverless environments with max_depth to control model footprint)
     print("Training Random Forest Classifier...")
     clf = RandomForestClassifier(
-        n_estimators=100, 
+        n_estimators=75,
+        max_depth=14,
         random_state=random_state, 
-        n_jobs=-1,
+        n_jobs=1,
         verbose=1
     )
     clf.fit(X_train_resampled, y_train_resampled)
@@ -76,9 +89,9 @@ def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, r
     print("Evaluating model...")
     y_pred = clf.predict(X_test)
     
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, zero_division=0)
+    recall = recall_score(y_test, y_pred, zero_division=0)
+    f1 = f1_score(y_test, y_pred, zero_division=0)
     
     metrics = {
         "precision": precision,
@@ -91,13 +104,13 @@ def train_model(data_path, model_output_path="fraud_model.pkl", test_size=0.2, r
     print(f"Recall:    {recall:.4f}")
     print(f"F1 Score:  {f1:.4f}")
     print("\nClassification Report:")
-    print(classification_report(y_test, y_pred))
+    print(classification_report(y_test, y_pred, zero_division=0))
     print("Confusion Matrix:")
     print(confusion_matrix(y_test, y_pred))
     
-    # Save model
+    # Save model with joblib compression (level 3)
     print(f"Saving model to {model_output_path}...")
-    joblib.dump(clf, model_output_path)
+    joblib.dump(clf, model_output_path, compress=3)
     print("Model saved successfully.")
     
     return metrics

@@ -1,4 +1,11 @@
 import os
+import tempfile
+
+# Force single-threaded execution for joblib/loky in serverless environments (e.g. Vercel)
+os.environ['JOBLIB_MULTIPROCESSING'] = '0'
+os.environ['LOKY_MAX_CPU_COUNT'] = '1'
+os.environ['JOBLIB_TEMP_FOLDER'] = tempfile.gettempdir()
+
 import json
 import queue
 import time
