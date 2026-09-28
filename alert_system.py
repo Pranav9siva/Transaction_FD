@@ -6,17 +6,15 @@ from datetime import datetime
 class AlertSystem:
     def __init__(self, log_file="alerts.jsonl"):
         self.log_file = log_file
-        # Ensure log file exists
-        if not os.path.exists(self.log_file):
-            with open(self.log_file, 'w') as f:
+        self.file_logging_enabled = True
+
+        try:
+            with open(self.log_file, 'a') as f:
                 pass
-        
-        # Setup standard logging for system events
-        logging.basicConfig(
-            filename='system.log',
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
+        except OSError as e:
+            # Catch read-only filesystem errors in serverless environments like Vercel
+            self.file_logging_enabled = False
+            logging.warning("Read-only environment detected. File logging disabled.")
 
     def log_alert(self, transaction: dict, decision_result: dict):
         """
