@@ -3,7 +3,7 @@
 This project is a Real-Time Transaction Fraud Detection System that leverages Machine Learning and Stream Processing to identify and flag fraudulent transactions as they occur.
 
 ## Project Explanation
-
+   
 ### 1. Data 
 The system ingests streaming transaction data (simulated as real-time). The transactions undergo complex preprocessing which generates over 260 features, including behavioral aggregations, standard encodings, and numerical imputations. The dataset is highly imbalanced (approx. 96.5% legitimate, 3.5% fraud), making fraud detection challenging.
 
